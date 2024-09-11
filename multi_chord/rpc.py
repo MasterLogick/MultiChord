@@ -1,10 +1,12 @@
 from enum import IntEnum
+from typing import Optional
 
 from . import remote_node
 from . import swarm_id
 
 
 class RpcMessageType(IntEnum):
+    """This enum defines a type of RPC message"""
     UNKNOWN = -1
     PING_REQUEST = 0
     PING_RESPONSE = 1
@@ -22,6 +24,8 @@ class RpcMessageType(IntEnum):
 
 
 class RpcMessage:
+    """Common rpc message header. Source, destination and message type"""
+
     def __init__(self, from_id: swarm_id.SwarmId, to_id: swarm_id.SwarmId, command: RpcMessageType):
         self.from_id = from_id
         self.to_id = to_id
@@ -35,6 +39,9 @@ class RpcMessage:
 
 
 class RpcPingRequest(RpcMessage):
+    """Rpc ping request. Alive node must respond with RpcPingResponse response to this request.
+    Also notifies callee about existence of the caller."""
+
     def __init__(self, from_id: swarm_id.SwarmId, to_id: swarm_id.SwarmId):
         super().__init__(from_id, to_id, RpcMessageType.PING_REQUEST)
 
@@ -43,6 +50,8 @@ class RpcPingRequest(RpcMessage):
 
 
 class RpcPingResponse(RpcMessage):
+    """Rpc ping response"""
+
     def __init__(self, from_id: swarm_id.SwarmId, to_id: swarm_id.SwarmId):
         super().__init__(from_id, to_id, RpcMessageType.PING_RESPONSE)
 
@@ -51,6 +60,9 @@ class RpcPingResponse(RpcMessage):
 
 
 class RpcGetNodeRequest(RpcMessage):
+    """Rpc get node request. Returns nearest known node with id below or equal to specified one or
+    zero node if node pool does not know any other nodes. Send this request to zero id of the node pool."""
+
     def __init__(self, from_id: swarm_id.SwarmId, to_id: swarm_id.SwarmId, query_id: swarm_id.SwarmId):
         super().__init__(from_id, to_id, RpcMessageType.GET_NODE_REQUEST)
         self.query_id = query_id
@@ -66,6 +78,8 @@ class RpcGetNodeRequest(RpcMessage):
 
 
 class RpcGetNodeResponse(RpcMessage):
+    """Rpc get node response"""
+
     def __init__(self, from_id: swarm_id.SwarmId, to_id: swarm_id.SwarmId,
                  remote: remote_node.RemoteNode):
         super().__init__(from_id, to_id, RpcMessageType.GET_NODE_RESPONSE)
@@ -82,6 +96,8 @@ class RpcGetNodeResponse(RpcMessage):
 
 
 class RpcGetSwarmRequest(RpcMessage):
+    """Returns a node list in the callee swarm"""
+
     def __init__(self, from_id: swarm_id.SwarmId, to_id: swarm_id.SwarmId):
         super().__init__(from_id, to_id, RpcMessageType.GET_SWARM_REQUEST)
 
@@ -90,6 +106,8 @@ class RpcGetSwarmRequest(RpcMessage):
 
 
 class RpcGetSwarmResponse(RpcMessage):
+    """Rpc get swarm response"""
+
     def __init__(self, from_id: swarm_id.SwarmId, to_id: swarm_id.SwarmId,
                  swarm: list[remote_node.RemoteNode]):
         super().__init__(from_id, to_id, RpcMessageType.GET_SWARM_RESPONSE)
@@ -114,6 +132,8 @@ class RpcGetSwarmResponse(RpcMessage):
 
 
 class RpcGetContentRequest(RpcMessage):
+    """Returns stored content or zero data of callee haven't got any data yet."""
+
     def __init__(self, from_id: swarm_id.SwarmId, to_id: swarm_id.SwarmId):
         super().__init__(from_id, to_id, RpcMessageType.GET_CONTENT_REQUEST)
 
@@ -122,6 +142,8 @@ class RpcGetContentRequest(RpcMessage):
 
 
 class RpcGetContentResponse(RpcMessage):
+    """Rpc get content response"""
+
     def __init__(self, from_id: swarm_id.SwarmId, to_id: swarm_id.SwarmId, data: bytes):
         super().__init__(from_id, to_id, RpcMessageType.GET_CONTENT_RESPONSE)
         self.data = data
@@ -136,7 +158,7 @@ class RpcGetContentResponse(RpcMessage):
         return f"RpcGetContentResponse(from_id={self.from_id}, to_id={self.to_id}, len(data)={len(self.data)})"
 
 
-def _parse_remote_node(msg: bytes) -> tuple[remote_node.RemoteNode | None, bytes]:
+def _parse_remote_node(msg: bytes) -> tuple[Optional[remote_node.RemoteNode], bytes]:
     if len(msg) < swarm_id.SwarmId.bytes_size + 4:
         return None, msg
     addr_len = int.from_bytes(msg[swarm_id.SwarmId.bytes_size: swarm_id.SwarmId.bytes_size + 4], byteorder="little",
@@ -154,7 +176,14 @@ def _serialize_remote_node(node: remote_node.RemoteNode) -> bytes:
             serialized_address)
 
 
-def parse_rpc_message(msg: bytes, address) -> tuple[RpcMessage | None, bytes]:
+def parse_rpc_message(msg: bytes, address) -> tuple[Optional[RpcMessage], bytes]:
+    """
+    Deserializes rpc message from byte string.
+    :param msg: byte string
+    :param address: address of the sender. Used as a fallback address if sender hasn't
+    specified it (means that sender referrers to themselves)
+    :return: rpc message if parsed successfully, unparsed remained bytes
+    """
     if len(msg) < swarm_id.SwarmId.bytes_size + swarm_id.SwarmId.bytes_size + 1:
         return None, msg
     from_id = swarm_id.SwarmId(msg[:swarm_id.SwarmId.bytes_size])
@@ -206,6 +235,8 @@ def parse_rpc_message(msg: bytes, address) -> tuple[RpcMessage | None, bytes]:
     else:
         return None, b""
 
+
+# simple serialization/deserialization test section to ensure implementation correctness
 
 _from_id = swarm_id.SwarmId(
     "384337abeaa3a24884ba6ce6df7e7c533569091f89f102a940ac19242e4947ac41d80c5e2fb4babc825113d2c06c5e44a39c9da3ca4d3fb8cf5969c2def21c7f")

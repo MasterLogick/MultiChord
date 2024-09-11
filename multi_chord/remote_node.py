@@ -2,6 +2,10 @@ from . import swarm_id
 
 
 class RemoteNode:
+    """
+    RemoteNode specifies a remote node by swarm id and node network address.
+    """
+
     def __init__(self, id: swarm_id.SwarmId, address: str):
         self.id = id
         self.address = address

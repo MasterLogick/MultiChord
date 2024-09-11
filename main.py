@@ -9,6 +9,9 @@ from multi_chord import node_pool
 from multi_chord import udp_server
 
 
+# MultiChord application instance consists of a node pool object, network interface(udp server) and
+# a pool of hosted virtual nodes
+
 async def main():
     parser = argparse.ArgumentParser(description="Multi Chord implementation.")
     parser.add_argument("--bootstrap", metavar="address", action="append", help="Specify bootstrap node address.")
@@ -50,6 +53,7 @@ async def main():
     await server.start(pool)
     ch = command_handler.CommandHandler(pool)
 
+    # Run common scenarios for test and demonstration purposes
     if args.scenario_host_random:
         f = tempfile.NamedTemporaryFile("wb+")
         f.write(secrets.randbits(512).to_bytes(64, "little", signed=False))

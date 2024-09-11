@@ -1,6 +1,9 @@
 # Multi chord
 
+PoC of a distributed hash table based on chord that do not store member lists.
+
 Each network must have at least one bootstrap node with static address that hosts at least one virtual node.
+One app instance is one node pool. You can create as many different virtual nodes in one pool as you want. 
 
 ## Examples
 

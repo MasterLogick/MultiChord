@@ -11,6 +11,8 @@ one swarm.
 
 Node pool description:
 
+See [NodePool](https://github.com/MasterLogick/MultiChord/blob/e1027886f0b9af3895fd23f3686ec02794189ec4/multi_chord/node_pool.py#L13)
+
 ```
 NodePool (
    virtual_nodes: list of VirtualNode
@@ -18,6 +20,8 @@ NodePool (
 ```
 
 Virtual node description:
+
+See [HostedVirtualNode](https://github.com/MasterLogick/MultiChord/blob/e1027886f0b9af3895fd23f3686ec02794189ec4/multi_chord/hosted_virtual_node.py#L42)
 
 ```
 VirtualNode (
@@ -34,6 +38,8 @@ But in reality this ids are upper bounds for fingers.
 
 Remote node description:
 
+See [RemoteNode](https://github.com/MasterLogick/MultiChord/blob/e1027886f0b9af3895fd23f3686ec02794189ec4/multi_chord/remote_node.py#L4)
+
 ```
 RemoteNode (
    id: Id
@@ -41,7 +47,7 @@ RemoteNode (
 )
 ```
 
-## RPC Protocol
+## RPC Protocol (See [rpc.py](./multi_chord/rpc.py))
 
 Multi chord is based on udp so there is no need to keep expensive sessions and perform redundant handshakes. Each rpc
 call is performed between two virtual nodes. Caller sends request message to the callee’s server socket, callee performs
@@ -92,6 +98,9 @@ This section describes all possible behaviours and actions that may occur in Mul
 
 ### Add a new virtual node
 
+See [host_local_file](https://github.com/MasterLogick/MultiChord/blob/e1027886f0b9af3895fd23f3686ec02794189ec4/multi_chord/command_handler.py#L55)
+or [join_remote](https://github.com/MasterLogick/MultiChord/blob/e1027886f0b9af3895fd23f3686ec02794189ec4/multi_chord/command_handler.py#L71)
+
 We can create new virtual node from specific id or a file. If we create node from id, node will download node value as
 soon as it will find other nodes in swarm. If we create node from file, it will provide this file for other nodes in the
 network.
@@ -110,6 +119,8 @@ node_pool.add(node)
 ```
 
 ### Stabilize virtual node
+
+See [stabilize_run](https://github.com/MasterLogick/MultiChord/blob/e1027886f0b9af3895fd23f3686ec02794189ec4/multi_chord/hosted_virtual_node.py#L125)
 
 As soon as node is created it starts to periodically stabilize itself. During stabilization process, node finds better
 remote nodes for finger table and close successor and predecessor. Also, it renews swarm members list and downloads node
@@ -152,6 +163,8 @@ if Node.swarm is not empty and Node.node_value is None:
 
 ### `find_node_below_or_equal(query_id: Id)` function
 
+See [_network_get_pred_or_eq](https://github.com/MasterLogick/MultiChord/blob/e1027886f0b9af3895fd23f3686ec02794189ec4/multi_chord/hosted_virtual_node.py#L238)
+
 This function finds in the whole Chord node with the closest or equal to `query_id` id.
 
 ```
@@ -167,6 +180,8 @@ find_node_below_or_equal(query_id: Id):
 ```
 
 ### `Node.get_node(query_id: Id)` function
+
+See [local_get_pred_or_eq](https://github.com/MasterLogick/MultiChord/blob/e1027886f0b9af3895fd23f3686ec02794189ec4/multi_chord/hosted_virtual_node.py#L271)
 
 This function implements RPC `GetNode` call. It returns the closest node with id below or equal to `query_id` from
 finger table, predecessor and successor nodes.
